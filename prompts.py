@@ -1,42 +1,16 @@
-def get_truck_classification_prompt(expected_type: str) -> str:
-    """
-    Simple and effective prompt for truck image classification
-    """
-    
-    prompt = f"""
-Analyze this truck image and identify the view type.
+def get_optimized_prompt() -> str:
+    """SPEED-OPTIMIZED prompt - shorter = faster response"""
+    return """
+Classify truck view and our plate. Respond with JSON only:
 
-TRUCK VIEWS:
-- front: Front view (headlights, grille, windshield)
-- right_side: Right side view
-- left_side: Left side view  
-- back: Rear view (tail lights, back doors)
-- interior: Inside cabin view
-- unknown: Not a clear truck view
+TYPES: FRONT, RIGHT_SIDE, LEFT_SIDE, BACK, INTERIOR, UNKNOWN
 
-EXPECTED: {expected_type}
-
-Respond with JSON only:
-{{
-    "detected_type": "front",
-    "confidence_score": 0.85,
-    "reasoning": "I can see headlights and front grille"
-}}
-"""
-    return prompt.strip()
-
-
-# Alternative prompts for testing different approaches
-def get_simple_prompt(expected_type: str) -> str:
-    """Even simpler prompt for basic testing"""
-    return f"""
-What truck view is this image showing?
-
-Options: front, right_side, left_side, back, interior, unknown
-Expected: {expected_type}
-
-JSON response only:
-{{"detected_type": "front", "confidence_score": 0.9}}
+{
+"detected_type": "FRONT",
+"confidence_score": "100%",
+"reasoning": "headlights visible"
+"plate_number": "ABC1D23" or "not_visible"
+}
 """
 
 
@@ -59,12 +33,15 @@ ANALYSIS STEPS:
 1. Is this a truck/commercial vehicle?
 2. What specific features are visible?
 3. What angle/view does this represent?
-4. How confident are you (0.0 to 1.0)?
+4. How confident are you in percentage string?
+5. The plate can be visible or not.
+6. if i seed the plate, what is the license plate number?
 
 STRICT JSON RESPONSE:
 {{
     "detected_type": "one_of_the_six_options_above",
-    "confidence_score": 0.85,
+    "confidence_score": "100%",
     "reasoning": "brief_explanation"
+    "plate_number": "ABC1D23" or "not_visible"
 }}
 """

@@ -1,19 +1,14 @@
 import base64
 import os
 from fastapi import FastAPI, File, UploadFile, HTTPException
-from prompts import get_detailed_prompt
+from prompts import get_detailed_prompt, get_optimized_prompt
 from google import genai
 from google.genai import types
 import json
 import re
 
 app = FastAPI()
-
 client = genai.Client()
-
-@app.get("/")
-async def root():
-    return {"message": GEMINI_API_KEY}
 
 
 @app.post("/upload-file")
@@ -45,9 +40,7 @@ async def upload_with_validation(file: UploadFile = File(...)):
         ]
     )
         
-        return {
-            "response": clean_json_response(response.text)
-        }
+        return clean_json_response(response.text)
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
     
