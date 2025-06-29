@@ -1,0 +1,15 @@
+services:
+  truck-classifier:
+    build: .
+    container_name: truck-image-classifier
+    ports:
+      - "8888:8888"
+    environment:
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - PYTHONDONTWRITEBYTECODE=1
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - .:/app          # ← This line enables hot reload
+      - ./test-images:/app/test-images
+      - /app/__pycache__
+    restart: unless-stopped
