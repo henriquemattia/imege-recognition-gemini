@@ -1,0 +1,56 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  truck-image-classifier
+  
+  SAM Template for truck image classification API using Gemini
+
+Globals:
+  Function:
+    Timeout: 30
+    MemorySize: 1024
+    Runtime: python3.10
+
+Resources:
+  TruckClassifierFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./
+      Handler: main.lambda_handler
+      Runtime: python3.10
+      Architectures:
+        - x86_64
+      Environment:
+        Variables:
+          SECRET_NAME: !Ref SecretName
+      Policies:
+        - S3ReadPolicy:
+            BucketName: "*"
+        - Statement:
+            - Effect: Allow
+              Action:
+                - secretsmanager:GetSecretValue
+              Resource: !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:*"
+      Events:
+        ProcessImage:
+          Type: Api
+          Properties:
+            Path: /process-image
+            Method: post
+
+Parameters:
+  SecretName:
+    Type: String
+    Description: AWS Secrets Manager secret name containing Gemini API Key
+    Default: "truck-classifier/gemini-key"
+
+Outputs:
+  TruckClassifierApi:
+    Description: "API Gateway endpoint URL for Truck Classifier function"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/process-image"
+  TruckClassifierFunction:
+    Description: "Truck Classifier Lambda Function ARN"
+    Value: !GetAtt TruckClassifierFunction.Arn
+  TruckClassifierFunctionIamRole:
+    Description: "Implicit IAM Role created for Truck Classifier function"
+    Value: !GetAtt TruckClassifierFunctionRole.Arn
