@@ -6,7 +6,6 @@ from prompts import get_detailed_prompt
 from google import genai
 from google.genai import types
 from secrets_manager import get_gemini_api_key
-from urllib.parse import urlparse
 import mimetypes
 
 def lambda_handler(event, context):
@@ -19,29 +18,29 @@ def lambda_handler(event, context):
         else:
             body = event.get('body', {})
         
-        s3_path = body.get('s3_path')
-        if not s3_path:
+        bucket = body.get('bucket')
+        pic = body.get('pic')
+        
+        if not bucket:
             return {
                 'statusCode': 400,
-                'body': json.dumps({'error': 'Missing s3_path'})
+                'body': json.dumps({'error': 'Missing bucket'})
+            }
+        
+        if not pic:
+            return {
+                'statusCode': 400,
+                'body': json.dumps({'error': 'Missing pic'})
             }
         
         try:
-            parsed_url = urlparse(s3_path)
-            if parsed_url.scheme != 's3':
-                return {
-                    'statusCode': 400,
-                    'body': json.dumps({'error': 'Invalid S3 path format. Expected s3://bucket/key'})
-                }
-            
-            bucket_name = parsed_url.netloc
-            object_key = parsed_url.path.lstrip('/')
-            print(bucket_name, object_key)
+            bucket_name = bucket.strip()
+            object_key = pic.strip()
             
             if not bucket_name or not object_key:
                 return {
                     'statusCode': 400,
-                    'body': json.dumps({'error': 'Invalid S3 path. Both bucket and key are required'})
+                    'body': json.dumps({'error': 'Bucket and pic cannot be empty'})
                 }
             
             s3_client = boto3.client('s3')
@@ -93,12 +92,9 @@ def lambda_handler(event, context):
         except Exception as e:
             return {
                 'statusCode': 400,
-                'body': json.dumps({'error': f'Error processing S3 path: {str(e)}'})
+                'body': json.dumps({'error': f'Error processing S3 request: {str(e)}'})
             }
             
-            print(file_content)
-            print('SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS')
-        
         base64_encoded = base64.b64encode(file_content).decode('utf-8')
         
         image = types.Part.from_bytes(
